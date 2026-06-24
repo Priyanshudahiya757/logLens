@@ -115,7 +115,7 @@ LogLens/
 ### Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/loglens.git
+git clone https://github.com/Priyanshudahiya757/logLens.git
 cd loglens
 ```
 
@@ -218,5 +218,5 @@ LogLens is an educational and portfolio project intended to demonstrate security
 
 Cybersecurity | Python | Security Engineering
 
-GitHub: https://github.com/yourusername
-LinkedIn: https://linkedin.com/in/yourprofile
+GitHub: https://github.com/Priyanshudahiya757
+
