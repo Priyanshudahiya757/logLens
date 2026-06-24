@@ -1,0 +1,354 @@
+{#
+    results.html — Phase 3.1 + Phase 3.3
+    Variables passed in from app.py:
+        filename, total_parsed, total_skipped, entries, threat_summary,
+        top_attackers, attack_breakdown, severity_breakdown
+#}
+{% extends "base.html" %}
+
+{% block title %}LogLens – Results{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="mb-1">Analysis Results</h2>
+        <p class="ll-subtitle mb-0">File: <code>{{ filename }}</code></p>
+    </div>
+    <div class="d-flex gap-2">
+    <a href="/" class="btn btn-outline-dark">
+        Upload another file
+    </a>
+
+    <a href="/report" class="btn btn-success">
+        Download Report
+    </a>
+    <a href="/export-csv" class="btn btn-warning">
+    Export CSV
+</a>
+</div>
+</div>
+
+
+<!-- File summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-success shadow-sm h-100 ll-stat-card">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase fw-semibold opacity-75">Lines Parsed</h6>
+                <p class="card-text display-6 fw-bold mb-0">{{ total_parsed }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-dark bg-warning shadow-sm h-100 ll-stat-card">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase fw-semibold opacity-75">Lines Skipped</h6>
+                <p class="card-text display-6 fw-bold mb-0">{{ total_skipped }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-dark shadow-sm h-100 ll-stat-card">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase fw-semibold opacity-75">Total Lines</h6>
+                <p class="card-text display-6 fw-bold mb-0">{{ total_parsed + total_skipped }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Threat summary cards -->
+{% if threat_summary.total > 0 %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-white bg-danger shadow-sm h-100 ll-stat-card">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase fw-semibold opacity-75">Threats Detected</h6>
+                <p class="card-text display-6 fw-bold mb-0">{{ threat_summary.total }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-white shadow-sm h-100 ll-stat-card" style="background-color: #b02a37;">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase fw-semibold opacity-75">High</h6>
+                <p class="card-text display-6 fw-bold mb-0">{{ threat_summary.high }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-dark bg-warning shadow-sm h-100 ll-stat-card">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase fw-semibold opacity-75">Medium</h6>
+                <p class="card-text display-6 fw-bold mb-0">{{ threat_summary.medium }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-dark bg-info shadow-sm h-100 ll-stat-card">
+            <div class="card-body">
+                <h6 class="card-title text-uppercase fw-semibold opacity-75">Low</h6>
+                <p class="card-text display-6 fw-bold mb-0">{{ threat_summary.low }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-success mb-4" role="alert">
+    <strong>No threats detected</strong> — all {{ total_parsed }} parsed entries look clean.
+</div>
+{% endif %}
+
+
+<!-- Threat intelligence analytics -->
+{% if threat_summary.total > 0 %}
+<h4 class="ll-section-title mt-2">Threat Intelligence Analysis</h4>
+
+<div class="row g-3 mb-5">
+
+    <!-- Top Attackers -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100 ll-analytics-card">
+            <div class="card-header bg-danger text-white">Top Attackers</div>
+            <div class="card-body p-0">
+                {% if top_attackers %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>IP Address</th>
+                                <th class="text-center">Threats</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attacker in top_attackers %}
+                            <tr>
+                                <td>
+                                    <code class="text-danger">{{ attacker.ip }}</code>
+                                    {% if attacker.types %}
+                                    <div class="mt-1">
+                                        {% for t in attacker.types %}
+                                        <span class="badge rounded-pill text-bg-secondary me-1" style="font-size: 0.65rem;">{{ t }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger">{{ attacker.count }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-3 text-muted">No malicious IPs detected</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Attack Type Breakdown -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100 ll-analytics-card">
+            <div class="card-header bg-warning text-dark">Attack Type Breakdown</div>
+            <div class="card-body">
+                {% if attack_breakdown %}
+                {% for attack_type, count in attack_breakdown.items() %}
+                <div class="ll-breakdown-item">
+                    <strong>{{ attack_type }}</strong>
+                    <span class="badge bg-secondary">{{ count }}</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-muted">No attacks categorized</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Severity Distribution -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100 ll-analytics-card">
+            <div class="card-header bg-info text-white">Severity Distribution</div>
+            <div class="card-body">
+                {% if severity_breakdown %}
+                <div class="ll-severity-row">
+                    <span><strong>High Severity</strong></span>
+                    <span class="badge bg-danger ll-severity-count">{{ severity_breakdown.High }}</span>
+                </div>
+                <div class="ll-severity-row">
+                    <span><strong>Medium Severity</strong></span>
+                    <span class="badge bg-warning text-dark ll-severity-count">{{ severity_breakdown.Medium }}</span>
+                </div>
+                <div class="ll-severity-row">
+                    <span><strong>Low Severity</strong></span>
+                    <span class="badge bg-info text-dark ll-severity-count">{{ severity_breakdown.Low }}</span>
+                </div>
+                {% else %}
+                <div class="text-muted">No severity data</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endif %}
+
+
+<!-- Log entries table -->
+{% if entries %}
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <span class="fw-semibold">Log Entries</span>
+        <span class="badge bg-secondary">{{ entries | length }} rows</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 ll-log-table">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>IP Address</th>
+                    <th>Timestamp</th>
+                    <th>Method</th>
+                    <th>Path</th>
+                    <th>Status</th>
+                    <th>Threat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                {% if entry.threat and entry.severity == "High" %}
+                    <tr class="table-danger">
+                {% elif entry.threat and entry.severity == "Medium" %}
+                    <tr class="table-warning">
+                {% elif entry.threat and entry.severity == "Low" %}
+                    <tr class="table-info">
+                {% else %}
+                    <tr>
+                {% endif %}
+                    <td class="text-muted small">{{ loop.index }}</td>
+                    <td><code>{{ entry.ip }}</code></td>
+                    <td class="small text-nowrap">{{ entry.timestamp }}</td>
+                    <td>
+                        {% if entry.method == "GET" %}
+                            <span class="badge bg-primary">GET</span>
+                        {% elif entry.method == "POST" %}
+                            <span class="badge bg-success">POST</span>
+                        {% elif entry.method == "PUT" or entry.method == "PATCH" %}
+                            <span class="badge bg-warning text-dark">{{ entry.method }}</span>
+                        {% elif entry.method == "DELETE" %}
+                            <span class="badge bg-danger">DELETE</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ entry.method }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="path-cell" title="{{ entry.path }}"><code>{{ entry.path }}</code></td>
+                    <td>
+                        {% set status_group = entry.status // 100 %}
+                        {% if status_group == 2 %}
+                            <span class="badge bg-success">{{ entry.status }}</span>
+                        {% elif status_group == 3 %}
+                            <span class="badge bg-info text-dark">{{ entry.status }}</span>
+                        {% elif status_group == 4 %}
+                            <span class="badge bg-warning text-dark">{{ entry.status }}</span>
+                        {% elif status_group == 5 %}
+                            <span class="badge bg-danger">{{ entry.status }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ entry.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td title="{{ entry.signature_name }}">
+                        {% if entry.threat %}
+                            {% if entry.severity == "High" %}
+                                <span class="badge bg-danger">{{ entry.attack_type }}</span>
+                            {% elif entry.severity == "Medium" %}
+                                <span class="badge bg-warning text-dark">{{ entry.attack_type }}</span>
+                            {% else %}
+                                <span class="badge bg-info text-dark">{{ entry.attack_type }}</span>
+                            {% endif %}
+                            <span class="badge bg-secondary ms-1" style="font-size: 0.7rem;">{{ entry.severity }}</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning" role="alert">
+    <strong>No entries parsed.</strong> The uploaded file may be empty or use an unsupported format.
+</div>
+{% endif %}
+
+{% if threat_summary.total > 0 %}
+
+<div class="card shadow-sm mt-4 mb-4">
+    <div class="card-header bg-primary text-white">
+        Attack Timeline
+    </div>
+
+    <div class="card-body">
+        <canvas id="timelineChart"></canvas>
+    </div>
+</div>
+
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const timelineLabels = [
+    {% for hour, count in timeline.items() %}
+        "{{ hour }}",
+    {% endfor %}
+];
+
+const timelineData = [
+    {% for hour, count in timeline.items() %}
+        {{ count }},
+    {% endfor %}
+];
+
+if (timelineLabels.length > 0) {
+
+    const ctx = document.getElementById("timelineChart");
+
+    new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: timelineLabels,
+
+            datasets: [{
+                label: "Attacks per Hour",
+                data: timelineData,
+                borderWidth: 3,
+                fill: false,
+                tension: 0.3
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+
+{% endblock %}

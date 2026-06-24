@@ -1,0 +1,11 @@
+192.168.1.1 - - [10/Oct/2023:13:55:36 -0700] "GET /index.html HTTP/1.1" 200 2326
+192.168.1.2 - alice [10/Oct/2023:13:55:37 -0700] "POST /api/login HTTP/1.1" 200 512
+10.0.0.15 - - [10/Oct/2023:13:55:38 -0700] "GET /dashboard HTTP/1.1" 302 0
+172.16.0.5 - bob [10/Oct/2023:13:55:39 -0700] "GET /static/style.css HTTP/1.1" 200 8192
+192.168.1.1 - - [10/Oct/2023:13:55:40 -0700] "GET /page-not-found HTTP/1.1" 404 1024
+10.0.0.99 - - [10/Oct/2023:13:55:41 -0700] "DELETE /api/users/42 HTTP/1.1" 403 256
+192.168.1.55 - carol [10/Oct/2023:13:55:42 -0700] "PUT /api/profile HTTP/1.1" 200 1800
+172.16.0.1 - - [10/Oct/2023:13:55:43 -0700] "GET /admin HTTP/1.1" 500 4096
+# This is a comment line — will be skipped
+192.168.1.2 - - [10/Oct/2023:13:55:44 -0700] "GET /favicon.ico HTTP/1.1" 200 318
+10.0.0.15 - - [10/Oct/2023:13:55:45 -0700] "GET /api/data?format=json HTTP/1.1" 200 9812

@@ -1,0 +1,149 @@
+{
+  "version": "1.0",
+  "description": "LogLens threat detection signatures — Phase 3.1",
+
+  "signatures": [
+
+    {
+      "id": "SQLI-001",
+      "name": "SQL Injection — UNION SELECT",
+      "attack_type": "SQL Injection",
+      "severity": "High",
+      "description": "Detects UNION-based injection used to dump rows from other tables. The attacker appends UNION SELECT to piggyback their own query onto the app's query.",
+      "patterns": [
+        "(?i)\\bunion\\b.{0,30}\\bselect\\b",
+        "(?i)\\bselect\\b.{0,30}\\bfrom\\b",
+        "(?i)\\binsert\\b.{0,20}\\binto\\b",
+        "(?i)\\bdelete\\b.{0,20}\\bfrom\\b",
+        "(?i)\\bdrop\\b.{0,10}\\b(table|database)\\b"
+      ]
+    },
+
+    {
+      "id": "SQLI-002",
+      "name": "SQL Injection — Boolean Blind",
+      "attack_type": "SQL Injection",
+      "severity": "High",
+      "description": "Detects boolean-based blind injection (OR 1=1, AND 1=1). Attackers inject always-true conditions to bypass login checks or force extra rows to be returned.",
+      "patterns": [
+        "(?i)(\\bor\\b|\\band\\b)\\s+1\\s*=\\s*1",
+        "(?i)'\\s*(or|and)\\s*'1'\\s*=\\s*'1",
+        "(?i)'\\s*or\\s*''\\s*='",
+        "(?i)admin'\\s*--"
+      ]
+    },
+
+    {
+      "id": "SQLI-003",
+      "name": "SQL Injection — Dangerous Stored Procedures",
+      "attack_type": "SQL Injection",
+      "severity": "High",
+      "description": "Detects calls to SQL Server built-in procedures that can execute OS commands (xp_cmdshell) or run arbitrary SQL (sp_executesql / EXEC). These lead to full server compromise.",
+      "patterns": [
+        "(?i)xp_cmdshell",
+        "(?i)sp_executesql",
+        "(?i)exec\\s*\\(",
+        "(?i)execute\\s*\\("
+      ]
+    },
+
+    {
+      "id": "XSS-001",
+      "name": "XSS — Script Tag Injection",
+      "attack_type": "XSS",
+      "severity": "High",
+      "description": "Detects raw <script> tags in the URL. If the server reflects the URL back into a page without escaping, the browser will run the attacker's JavaScript.",
+      "patterns": [
+        "(?i)<\\s*script[^>]*>",
+        "(?i)<\\s*/\\s*script\\s*>"
+      ]
+    },
+
+    {
+      "id": "XSS-002",
+      "name": "XSS — Inline Event Handler Injection",
+      "attack_type": "XSS",
+      "severity": "Medium",
+      "description": "Detects HTML event attributes (onerror=, onload=, onclick=...) and protocol handlers (javascript:, vbscript:) injected into URLs to execute JavaScript without a <script> tag.",
+      "patterns": [
+        "(?i)\\bon\\w+\\s*=",
+        "(?i)javascript\\s*:",
+        "(?i)vbscript\\s*:"
+      ]
+    },
+
+    {
+      "id": "XSS-003",
+      "name": "XSS — Dangerous JavaScript Calls",
+      "attack_type": "XSS",
+      "severity": "Medium",
+      "description": "Detects JavaScript function calls frequently used in XSS payloads to pop alerts, steal cookies, or redirect the browser.",
+      "patterns": [
+        "(?i)alert\\s*\\(",
+        "(?i)confirm\\s*\\(",
+        "(?i)prompt\\s*\\(",
+        "(?i)eval\\s*\\(",
+        "(?i)document\\.cookie",
+        "(?i)window\\.location"
+      ]
+    },
+
+    {
+      "id": "TRAV-001",
+      "name": "Directory Traversal — Dot-Dot-Slash",
+      "attack_type": "Directory Traversal",
+      "severity": "High",
+      "description": "Detects ../ sequences in the URL path. Each ../ moves one directory up. Attackers chain them to climb out of the web root and read arbitrary files.",
+      "patterns": [
+        "\\.\\./",
+        "\\.\\.\\\\"
+      ]
+    },
+
+    {
+      "id": "TRAV-002",
+      "name": "Directory Traversal — URL-Encoded Variants",
+      "attack_type": "Directory Traversal",
+      "severity": "High",
+      "description": "Detects URL-encoded (%2e%2e%2f) and double-encoded (%252e%252e) forms of ../ that are sometimes used to bypass server-side path filters.",
+      "patterns": [
+        "(?i)%2e%2e[%2f/\\\\]",
+        "(?i)%252e%252e",
+        "(?i)%c0%ae",
+        "(?i)%e0%80%ae"
+      ]
+    },
+
+    {
+      "id": "TRAV-003",
+      "name": "Directory Traversal — Sensitive System Files",
+      "attack_type": "Directory Traversal",
+      "severity": "High",
+      "description": "Detects direct access to well-known sensitive system files. Even without a traversal prefix, requests for /etc/passwd or boot.ini are always suspicious.",
+      "patterns": [
+        "(?i)/etc/passwd",
+        "(?i)/etc/shadow",
+        "(?i)/etc/hosts",
+        "(?i)boot\\.ini",
+        "(?i)win\\.ini",
+        "(?i)system\\.ini"
+      ]
+    },
+
+    {
+      "id": "TRAV-004",
+      "name": "Directory Traversal — Hidden Config Files",
+      "attack_type": "Directory Traversal",
+      "severity": "Medium",
+      "description": "Detects probes for hidden configuration files (.htaccess, .env, .git/config) that often contain credentials, API keys, or server rules.",
+      "patterns": [
+        "(?i)/\\.htaccess",
+        "(?i)/\\.htpasswd",
+        "(?i)/\\.env",
+        "(?i)/\\.git/config",
+        "(?i)/web\\.config"
+      ]
+    }
+
+  ]
+}
